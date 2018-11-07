@@ -4,6 +4,9 @@ package com.pinyougou.sellergoods.service;
 import com.pinyougou.pojo.TbBrand;
 import entity.PageResult;
 
+import java.util.List;
+import java.util.Map;
+
 public interface BrandService {
     /**
      * 分页查询
@@ -39,5 +42,9 @@ public interface BrandService {
      */
     void delete(Long[] ids);
 
-
+    /**
+     * 获取品牌下拉选项
+     * @return
+     */
+    List<Map> selectOptionList();
 }

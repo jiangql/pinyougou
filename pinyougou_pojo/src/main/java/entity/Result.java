@@ -2,11 +2,11 @@ package entity;
 
 import java.io.Serializable;
 
-public class ResultMsg implements Serializable {
+public class Result implements Serializable {
     private Boolean success;
     private String message;
 
-    public ResultMsg(Boolean success, String message) {
+    public Result(Boolean success, String message) {
         this.success = success;
         this.message = message;
     }

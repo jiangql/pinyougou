@@ -1,4 +1,4 @@
-app.controller("brandController", function($scope, $http,brandService,$controller) {
+app.controller("brandController", function($scope,brandService,$controller) {
 
     $controller('baseController',{$scope:$scope});
 

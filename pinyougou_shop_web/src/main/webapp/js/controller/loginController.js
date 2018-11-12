@@ -1,4 +1,4 @@
-app.controller("baseController", function ($scope, $controller, loginService) {
+app.controller("loginController", function ($scope, $controller, loginService) {
     $controller("baseController", {$scope: $scope});
     $scope.showLoginName = function () {
         loginService.showLoginName().success(

@@ -76,5 +76,32 @@ app.controller('itemCatController' ,function($scope,$controller   ,itemCatServic
 			}			
 		);
 	}
+	//根据parentId查询分类
+	$scope.findByParentId=function (parentId) {
+		itemCatService.findByParentId(parentId).success(
+			function (reponse) {
+				$scope.list=reponse;
+            }
+		);
+    };
+    $scope.grade=1;
+	$scope.setGrade=function (value) {
+		$scope.grade=value;
+    };
+
+    $scope.selectList=function (entity) {
+		if ($scope.grade==1){
+			$scope.entity_1=null;
+			$scope.entity_1=null;
+		}
+		if ($scope.grade==2){
+			$scope.entity_1=entity;
+			$scope.entity_2=null;
+		}
+		if ($scope.grade==3){
+			$scope.entity_2=entity;
+		}
+		$scope.findByParentId(entity.id);
+    }
     
 });	

@@ -1,5 +1,5 @@
 app.service("loginService",function ($http) {
-   this.findLoginName=function () {
+   this.showLoginName=function () {
        return $http.get("../login/name.do");
    }
 });

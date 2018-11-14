@@ -16,6 +16,7 @@
 
     <script type="text/javascript" src="../plugins/angularjs/angular.min.js"></script>
     <script type="text/javascript" src="../js/base.js"></script>
+    <script type="text/javascript" src="../js/service/typeTemplateService.js"></script>
     <script type="text/javascript" src="../js/service/itemCatService.js"></script>
     <script type="text/javascript" src="../js/controller/baseController.js"></script>
     <script type="text/javascript" src="../js/controller/itemCatController.js"></script>
@@ -23,7 +24,7 @@
 </head>
 
 <body class="hold-transition skin-red sidebar-mini" ng-app="pinyougou" ng-controller="itemCatController"
-      ng-init="findByParentId(0)">
+      ng-init="findByParentId(0);findTypeList()">
 <!-- .box-body -->
 
 <div class="box-header with-border">
@@ -37,7 +38,7 @@
             <a ng-click="grade=1;selectList({id:0})">顶级分类列表</a>
         </li>
         <li>
-            <a ng-lick="grade=2;selectList(entity_1)">{{entity_1.name}}</a>
+            <a ng-click="grade=2;selectList(entity_1)">{{entity_1.name}}</a>
         </li>
         <li>
             <a ng-click="grade=3;selectList(entity_2)">{{entity_2.name}}</a>
@@ -85,10 +86,10 @@
 
 
                 <td class="text-center">
-                    <span ng-if="grade!=3">
-                        <button type="button" class="btn bg-olive btn-xs" ng-click="setGrade(grade+1);selectList(entity)"">查询下级</button>
+                    <span ng-if="grade<3">
+                        <button type="button" class="btn bg-olive btn-xs" ng-click="setGrade(grade+1);selectList(entity)">查询下级</button>
                     </span>
-                    <button type="button" class="btn bg-olive btn-xs" data-toggle="modal" data-target="#editModal">修改
+                    <button type="button" class="btn bg-olive btn-xs" data-toggle="modal" data-target="#editModal" ng-click="findOne(entity.id)">修改
                     </button>
                 </td>
             </tr>
@@ -117,25 +118,27 @@
                     <tr>
                         <td>上级商品分类</td>
                         <td>
-                            珠宝 >> 银饰
+                            {{entity_1.name}}>> {{entity_2.name}}
                         </td>
                     </tr>
                     <tr>
                         <td>商品分类名称</td>
-                        <td><input class="form-control" placeholder="商品分类名称"></td>
+                        <td><input class="form-control" placeholder="商品分类名称" ng-model="entity.name"></td>
                     </tr>
                     <tr>
                         <td>类型模板</td>
                         <td>
-                            <input select2 config="options['type_template']" placeholder="商品类型模板" class="form-control"
-                                   type="text"/>
+                            <select placeholder="商品类型模板" class="form-control" ng-model="entity.typeId" type="text"
+                                    ng-options="item.id as item.name for item in typeList"></select>
+                            <!--<input select2 config="options['type_template']" placeholder="商品类型模板" class="form-control"
+                                   type="text"/>-->
                         </td>
                     </tr>
                 </table>
 
             </div>
             <div class="modal-footer">
-                <button class="btn btn-success" data-dismiss="modal" aria-hidden="true">保存</button>
+                <button class="btn btn-success" data-dismiss="modal" aria-hidden="true" ng-click="save()">保存</button>
                 <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</button>
             </div>
         </div>

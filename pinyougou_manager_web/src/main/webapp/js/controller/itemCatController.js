@@ -1,5 +1,5 @@
  //控制层 
-app.controller('itemCatController' ,function($scope,$controller   ,itemCatService){	
+app.controller('itemCatController' ,function($scope,$controller,typeTemplateService,itemCatService){
 	
 	$controller('baseController',{$scope:$scope});//继承
 	
@@ -37,12 +37,14 @@ app.controller('itemCatController' ,function($scope,$controller   ,itemCatServic
 		if($scope.entity.id!=null){//如果有ID
 			serviceObject=itemCatService.update( $scope.entity ); //修改  
 		}else{
+			$scope.entity.parentId=$scope.parentId;
 			serviceObject=itemCatService.add( $scope.entity  );//增加 
 		}				
 		serviceObject.success(
 			function(response){
 				if(response.success){
-					//重新查询 
+					//重新查询
+                    $scope.findByParentId($scope.parentId);//重新加载
 		        	$scope.reloadList();//重新加载
 				}else{
 					alert(response.message);
@@ -77,7 +79,9 @@ app.controller('itemCatController' ,function($scope,$controller   ,itemCatServic
 		);
 	}
 	//根据parentId查询分类
+	$scope.parentId=0;
 	$scope.findByParentId=function (parentId) {
+        $scope.parentId=parentId;
 		itemCatService.findByParentId(parentId).success(
 			function (reponse) {
 				$scope.list=reponse;
@@ -102,6 +106,18 @@ app.controller('itemCatController' ,function($scope,$controller   ,itemCatServic
 			$scope.entity_2=entity;
 		}
 		$scope.findByParentId(entity.id);
+    };
+
+    $scope.typeListDesc=[];
+    $scope.findTypeList=function () {
+		typeTemplateService.findAll().success(
+			function (response) {
+				$scope.typeList=response;
+				for (var i=0;i<response.length;i++){
+					$scope.typeListDesc[response[i].id]=response[i].name;
+				}
+            }
+		);
     }
     
 });	

@@ -42,6 +42,21 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         return map;
     }
 
+    @Override
+    public void importList(List list) {
+        solrTemplate.saveBeans(list);
+        solrTemplate.commit();
+    }
+
+    @Override
+    public void deleteByGoodsIds(List goodsIdList) {
+        Query query= new SimpleQuery();
+        Criteria criteria = new Criteria("item_goodsid").in(goodsIdList);
+        query.addCriteria(criteria);
+        solrTemplate.delete(query);
+        solrTemplate.commit();
+    }
+
     /**
      * 根据category分类名从缓存中获取brand和spec列表
      * @param category

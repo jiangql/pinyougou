@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.pinyougou.pojo.TbGoods;
 
+import com.pinyougou.pojo.TbItem;
 import com.pinyougou.pojogroup.Goods;
 import entity.PageResult;
 /**
@@ -66,4 +67,6 @@ public interface GoodsService {
 	 * @param ids
 	 */
 	void updateStatus(Long[] ids,String status);
+
+	public List<TbItem> findItemListByGoodsStatus(Long[] goodsIds,String status);
 }

@@ -1,20 +1,25 @@
 package com.pinyougou.manager.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
-import com.pinyougou.page.service.ItemPageService;
+import com.alibaba.fastjson.JSON;
 import com.pinyougou.pojo.TbGoods;
 import com.pinyougou.pojo.TbItem;
 import com.pinyougou.pojogroup.Goods;
-import com.pinyougou.search.service.ItemSearchService;
 import com.pinyougou.sellergoods.service.GoodsService;
 import entity.PageResult;
 import entity.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.Session;
 import java.util.List;
 
 /**
@@ -29,12 +34,20 @@ public class GoodsController {
 	@Reference
 	private GoodsService goodsService;
 
-	@Reference
-	private ItemSearchService itemSearchService;
+	@Autowired
+	private Destination queueSolrDestination;//更新solr索引
 
-	@Reference
-	private ItemPageService pageService;
-	
+	@Autowired
+    private Destination queueSolrDeleteDestination;//删除solr索引
+
+	@Autowired
+    private Destination topicPageDestination;//生成静态页面
+
+    @Autowired
+    private Destination topicPageDeleteDestination;//用于删除静态网页的消息
+
+    @Autowired
+	private JmsTemplate jmsTemplate;
 	/**
 	 * 返回全部列表
 	 * @return
@@ -104,11 +117,26 @@ public class GoodsController {
 	 * @return
 	 */
 	@RequestMapping("/delete")
-	public Result delete(Long [] ids){
+	public Result delete(final Long [] ids){
 		try {
 			goodsService.delete(ids);
-			itemSearchService.deleteByGoodsIds(Arrays.asList(ids));
-			return new Result(true, "删除成功"); 
+			//删除索引库中的商品
+            jmsTemplate.send(queueSolrDeleteDestination, new MessageCreator() {
+                @Override
+                public Message createMessage(Session session) throws JMSException {
+                    return session.createObjectMessage(ids);
+                }
+            });
+
+            //删除商品详情页面
+            jmsTemplate.send(topicPageDeleteDestination, new MessageCreator() {
+                @Override
+                public Message createMessage(Session session) throws JMSException {
+                    return session.createObjectMessage(ids);
+                }
+            });
+
+            return new Result(true, "删除成功");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new Result(false, "删除失败");
@@ -135,15 +163,24 @@ public class GoodsController {
 			//按照SPUID查询SKU列表
 			if ("1".equals(status)){
 				List<TbItem> itemList = goodsService.findItemListByGoodsStatus(ids, status);
-				//调用搜索接口实现数据批量导入
-				if (itemList.size()>0){
-					itemSearchService.importList(itemList);
-				}else {
-					System.out.println("没有数据明细");
-				}
+				//生产者发出消息数据批量导入
+                String jsonString = JSON.toJSONString(itemList);
+                jmsTemplate.send(queueSolrDestination, new MessageCreator() {
+					@Override
+					public Message createMessage(Session session) throws JMSException {
+
+						return session.createTextMessage(jsonString);
+					}
+				});
+
 				//静态页生成
 				for(Long goodsId:ids){
-					pageService.genItemHtml(goodsId);
+					jmsTemplate.send(topicPageDestination, new MessageCreator() {
+                        @Override
+                        public Message createMessage(Session session) throws JMSException {
+                            return session.createTextMessage(""+goodsId);
+                        }
+                    });
 				}
 			}
 			return new Result(true, "成功");
@@ -159,7 +196,7 @@ public class GoodsController {
 	 */
 	@RequestMapping("/genHtml")
 	public void genItemHtml(Long goodsId){
-		pageService.genItemHtml(goodsId);
+		/*pageService.genItemHtml(goodsId);*/
 	}
 
 

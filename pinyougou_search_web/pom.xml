@@ -80,6 +80,7 @@
             <scope>provided</scope>
         </dependency>
 
+
         <dependency>
             <groupId>com.jql</groupId>
             <artifactId>pinyougou_search_interface</artifactId>

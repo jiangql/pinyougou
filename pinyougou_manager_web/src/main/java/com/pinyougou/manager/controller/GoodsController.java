@@ -8,6 +8,7 @@ import com.pinyougou.pojogroup.Goods;
 import com.pinyougou.sellergoods.service.GoodsService;
 import entity.PageResult;
 import entity.Result;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
@@ -42,7 +43,6 @@ public class GoodsController {
 
 	@Autowired
     private Destination topicPageDestination;//生成静态页面
-
     @Autowired
     private Destination topicPageDeleteDestination;//用于删除静态网页的消息
 
@@ -127,7 +127,6 @@ public class GoodsController {
                     return session.createObjectMessage(ids);
                 }
             });
-
             //删除商品详情页面
             jmsTemplate.send(topicPageDeleteDestination, new MessageCreator() {
                 @Override
@@ -168,7 +167,6 @@ public class GoodsController {
                 jmsTemplate.send(queueSolrDestination, new MessageCreator() {
 					@Override
 					public Message createMessage(Session session) throws JMSException {
-
 						return session.createTextMessage(jsonString);
 					}
 				});

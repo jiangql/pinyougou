@@ -18,6 +18,7 @@ app.controller('userController',function ($scope,$interval,$timeout,userService)
             function (response) {
                 if(response.success){
                     alert("注册成功");
+                    location.href="https://www.taobao.com"
                 }else {
                     alert(response.message);
                 }
@@ -27,7 +28,7 @@ app.controller('userController',function ($scope,$interval,$timeout,userService)
 
     //发送验证码
     $scope.sendCode=function () {
-        if ($scope.entity.phone==null||$scope.entity.phone==""){
+        if ($scope.entity.phone==null||$scope.entity.phone.length==0){
             alert("请输入电话号码");
             return;
         }
@@ -42,6 +43,7 @@ app.controller('userController',function ($scope,$interval,$timeout,userService)
         );
     };
 
+    //短信重发倒计时
     $scope.timer = false;
     $scope.timeout = 60000;
     $scope.timerCount = $scope.timeout / 1000;

@@ -176,7 +176,7 @@ public class UserServiceImpl implements UserService {
 		redisTemplate.boundHashOps("smscode").put(phone,smsCode);
 		System.out.println(sign_name);
 		//将短信内容发到activeMQ
-		jmsTemplate.send(smsCodeDestination, new MessageCreator() {
+		/*jmsTemplate.send(smsCodeDestination, new MessageCreator() {
 			@Override
 			public Message createMessage(Session session) throws JMSException {
                 MapMessage message = session.createMapMessage();
@@ -188,7 +188,7 @@ public class UserServiceImpl implements UserService {
                 message.setString("param", JSON.toJSONString(map));
                 return message;
 			}
-		});
+		});*/
 
 	}
 

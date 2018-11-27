@@ -1,4 +1,4 @@
-app.controller("itemController",function($scope){
+app.controller("itemController",function($scope,$http){
 	//页面更新商品件数
 	$scope.updateNum=function(num){
 		$scope.num +=num;
@@ -56,7 +56,15 @@ app.controller("itemController",function($scope){
 	}
 		//添加商品到购物车
 	$scope.addToCart=function(){
-		alert('skuid:'+$scope.sku.id);				
+		$http.get("http://localhost:9107/cart/addGoodsToCartList.do?itemId="+$scope.sku.id+"&num="+$scope.num,{'withCredentials':true}).success(
+			function (response) {
+				if (response.success){
+					location.href="http://localhost:9107/cart.html";//跳转购物车页
+				}else {
+					alert(response.message);
+				}
+            }
+		);
 	}
 
 });

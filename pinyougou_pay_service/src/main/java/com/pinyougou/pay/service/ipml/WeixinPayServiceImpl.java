@@ -1,9 +1,12 @@
 package com.pinyougou.pay.service.ipml;
 
 import com.github.wxpay.sdk.WXPayUtil;
+import com.jql.util.HttpClient;
 import com.pinyougou.pay.service.WeixinPayService;
 import org.springframework.beans.factory.annotation.Value;
+import sun.nio.cs.ext.MacArabic;
 
+import java.lang.annotation.Native;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,13 +28,73 @@ public class WeixinPayServiceImpl implements WeixinPayService {
      */
     @Override
     public Map createNative(String out_trade_no, String total_fee) {
-        Map<String,String> param=new HashMap<String, String>(); //创建参数
+        //1. 创建参数
+        Map<String,String> param=new HashMap<String, String>();
         param.put("appid",appid);//公众号ID
         param.put("mch_id",partner);//商户号
         param.put("nonce_str", WXPayUtil.generateNonceStr());//获取随机字符串
-        param.put("body","品优购");
-  /*      param.put("",);*/
+        param.put("body","品优购");//商品描述
+        param.put("out_trade_no",out_trade_no);//商户订单号
+        param.put("total_fee",total_fee);//标价金额
+        param.put("spbill_create_ip","127.0.0.1");//终端IP
+        param.put("notify_url","http://www.jql.com");//回调地址
+        param.put("trade_type","NATIVE");//交易类型
 
-        return null;
+        try {
+            //2.生成要发送的XML
+            String xmlParm = WXPayUtil.generateSignedXml(param, partnerkey);
+            System.out.println(xmlParm);
+
+            HttpClient client= new HttpClient("https://api.mch.weixin.qq.com/pay/unifiedorder");
+            client.setHttps(true);
+            client.setXmlParam(xmlParm);
+            client.post();
+
+            //3.获取结果
+            String result = client.getContent();
+            System.out.println(result);
+            Map<String, String> resultMap = WXPayUtil.xmlToMap(result);
+            Map<String,String> map= new HashMap<>();
+            map.put("code_url",resultMap.get("code_url"));
+            map.put("total_fee",total_fee);
+            map.put("out_trade_no",out_trade_no);
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new HashMap();
+        }
+
+    }
+
+    /**
+     * 根据订单号查询支付结果
+     * @param out_trade_no
+     * @return
+     */
+    @Override
+    public Map queryPayStatus(String out_trade_no) {
+        Map<String,String> param = new HashMap<>();
+        param.put("appid",appid);//公众号ID
+        param.put("mch_id",partner);//商户号
+        param.put("out_trade_no",out_trade_no);//商户订单号
+        param.put("nonce_str",WXPayUtil.generateNonceStr());//获取随机字符串
+        String url="https://api.mch.weixin.qq.com/pay/orderquery";//查询支付接口
+
+        try {
+            String xmlParm = WXPayUtil.generateSignedXml(param, partnerkey);
+            HttpClient client= new HttpClient(url);
+            client.setHttps(true);
+            client.setXmlParam(xmlParm);
+            client.post();
+
+            String result = client.getContent();
+            Map<String, String> map = WXPayUtil.xmlToMap(result);
+            System.out.println(map);
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 }

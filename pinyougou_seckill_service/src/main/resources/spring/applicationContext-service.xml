@@ -8,11 +8,16 @@
         http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <dubbo:protocol name="dubbo" port="20899"></dubbo:protocol>
+    <dubbo:protocol name="dubbo" port="20900"></dubbo:protocol>
     
 	<dubbo:application name="pinyougou-seckill-service"/>
     <dubbo:registry address="zookeeper://192.168.21.129:2181"/>
     <dubbo:annotation package="com.pinyougou.seckill.service.impl" />
+
+	<bean class="com.jql.util.IdWorker" id="idWorker">
+		<constructor-arg index="0" value="1"></constructor-arg>
+		<constructor-arg index="1" value="0"></constructor-arg>
+	</bean>
    
    
 </beans>

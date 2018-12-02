@@ -12,6 +12,7 @@ import com.pinyougou.pojo.TbSeckillGoodsExample.Criteria;
 import com.pinyougou.seckill.service.SeckillGoodsService;
 
 import entity.PageResult;
+import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * 服务实现层
@@ -23,6 +24,9 @@ public class SeckillGoodsServiceImpl implements SeckillGoodsService {
 
 	@Autowired
 	private TbSeckillGoodsMapper seckillGoodsMapper;
+
+	@Autowired
+	private RedisTemplate redisTemplate;
 	
 	/**
 	 * 查询全部
@@ -112,14 +116,35 @@ public class SeckillGoodsServiceImpl implements SeckillGoodsService {
 
 	@Override
 	public List<TbSeckillGoods> findList() {
+        List<TbSeckillGoods> seckillGoodsList = redisTemplate.boundHashOps("seckillGoods").values();
+        if (seckillGoodsList.size() == 0 || seckillGoodsList == null) {
+            TbSeckillGoodsExample example = new TbSeckillGoodsExample();
+            Criteria criteria = example.createCriteria();
+            criteria.andStatusEqualTo("1");
+            criteria.andStockCountGreaterThan(0);
+            criteria.andStartTimeLessThan(new Date());
+            criteria.andEndTimeGreaterThan(new Date());
+            seckillGoodsList = seckillGoodsMapper.selectByExample(example);
 
-		TbSeckillGoodsExample example= new TbSeckillGoodsExample();
-        Criteria criteria = example.createCriteria();
-        criteria.andStatusEqualTo("1");
-        criteria.andStockCountGreaterThan(0);
-        criteria.andStartTimeLessThan(new Date());
-        criteria.andEndTimeGreaterThan(new Date());
-        return seckillGoodsMapper.selectByExample(example);
-	}
+            System.out.println("从数据库查秒杀商品，存入redis");
+            for (TbSeckillGoods seckillGoods : seckillGoodsList) {
+                redisTemplate.boundHashOps("seckillGoods").put(seckillGoods.getId(), seckillGoods);
+            }
 
+        }else {
+            System.out.println("从缓存中获取秒杀商品列表");
+        }
+
+        return seckillGoodsList;
+    }
+
+    /**
+     * 从缓存中获取商品详情
+     * @param id
+     * @return
+     */
+    @Override
+    public TbSeckillGoods findOneFromRedis(Long id) {
+	    return (TbSeckillGoods) redisTemplate.boundHashOps("seckillGoods").get(id);
+    }
 }
